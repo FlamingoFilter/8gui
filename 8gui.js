@@ -3,22 +3,17 @@
 import { GUI } from 'dat.gui'
 
 var scene
-exports.load8GUI = function(sceneElem){
+var lastGui 
+function load(sceneElem){
     if(!sceneElem || !sceneElem.object3D || !sceneElem.camera){
-        console.error("load8GUI only argument expects a THREE.Scene to run on (with object3D and camera variables).")
+        console.error("load() argument expects a THREE.Scene to run on (with object3D and camera variables).")
         return;
     }
     scene = sceneElem
     try {
-        var gui = new GUI()
-        var allFolder
-
-        var inspectButton = gui.add({ inspect:function(){
-            if(allFolder) gui.remove(allFolder)
-            allFolder = addSceneFolderToGUI(gui)
-        }},'inspect');
-
-        return gui
+        lastGui = new GUI()
+        addSceneFolderToGUI(lastGui)
+        return lastGui
     } catch(e){
         console.error(e)
     }
@@ -29,45 +24,46 @@ var guiByUUID = {}
 var folders = {}
 
 function addSceneFolderToGUI(gui){
-    var all = gui.addFolder("All")
+    addDynFolder("8GUI", gui, scene, function(types){
+        Object.keys(folders).forEach(folder => {
+            folders[folder].unnamedNodesCount = 0;
+        })
+        var guiNodeCount = 0
+        scene.object3D.traverse(node => {
+            if(!folders[node.type]) folders[node.type] = types.addFolder(node.type)
 
-    var guiNodeCount = 0
-
-    scene.object3D.traverse(node => {
-        if(!folders[node.type]) folders[node.type] = all.addFolder(node.type)
-
-        var nodeGui
-        try {
-            if(!node.name || node.name == ""){
-                folders[node.type].unnamedNodesCount = (folders[node.type].unnamedNodesCount || 0) + 1
-                nodeGui = addDynFolder(node.el.id + " " + folders[node.type].unnamedNodesCount, folders[node.type], node, function(folder){
-                    addObjectToGUI(folder, node)
-                })
-            }
-            else {
-                nodeGui = addDynFolder(node.name, folders[node.type], node, function(folder){
-                    addObjectToGUI(folder, node)
-                })
-            }
-        }
-        catch(e){
+            var nodeGui
             try {
-                folders[node.type].unnamedNodesCount = (folders[node.type].unnamedNodesCount || 0) + 1
-                nodeGui = addDynFolder(folders[node.type].unnamedNodesCount, folders[node.type], node, function(folder){
-                    addObjectToGUI(folder, node)
-                })
+                if(!node.name || node.name == ""){
+                    folders[node.type].unnamedNodesCount = (folders[node.type].unnamedNodesCount || 0) + 1
+                    nodeGui = addDynFolder(node.el.id + " " + folders[node.type].unnamedNodesCount, folders[node.type], node, function(folder){
+                        addObjectToGUI(folder, node)
+                    })
+                }
+                else {
+                    nodeGui = addDynFolder(node.name, folders[node.type], node, function(folder){
+                        addObjectToGUI(folder, node)
+                    })
+                }
             }
             catch(e){
-                console.error(e)
-                console.error("Error on adding the gui node :")
-                console.log(node)
+                try {
+                    folders[node.type].unnamedNodesCount = (folders[node.type].unnamedNodesCount || 0) + 1
+                    nodeGui = addDynFolder(folders[node.type].unnamedNodesCount, folders[node.type], node, function(folder){
+                        addObjectToGUI(folder, node)
+                    })
+                }
+                catch(e){
+                    console.error(e)
+                    console.error("Error on adding the gui node :")
+                    console.log(node)
+                }
             }
-        }
 
-        guiByUUID[node.uuid] = nodeGui
-        console.log("Adding GUI Node n°" + guiNodeCount++)
-    });
-    return all
+            guiByUUID[node.uuid] = nodeGui
+            console.log("Adding GUI Node n°" + guiNodeCount++)
+        });
+    })
 }
 
 onGUIKey["position"]                 = function(nodeGui, node){
@@ -378,6 +374,7 @@ function addObjectToGUI(objectGui, object){
 // Create a special folder that only add its content GUI when opening on click and destroy it's internal GUI on closing,
 // allowing us to force refresh gui sliders values with close + open events
 function addDynFolder(folderName, nodeGui, node, populateFolderFunction){
+    if(!nodeGui) nodeGui = lastGui
 
     // Create a new folder OR recover it if already existing
     var folder 
@@ -388,7 +385,7 @@ function addDynFolder(folderName, nodeGui, node, populateFolderFunction){
         if(e.target.innerHTML != folderName) return; // Prevent this click reaction outside of the folder
 
         if(!folder.loaded){
-            if(e.getModifierState("Shift")) console.log(node[folderName] || node) // Also log node in console when shift + opening
+            if(node && e.getModifierState("Shift")) console.log(node[folderName] || node) // Also log node in console when shift + opening
             populateFolderFunction(folder)
             colorizeLastOpenedDynFolder(nodeGui, folder)
             folder.loaded = true
@@ -484,3 +481,15 @@ function moveTo(node){
         z: [cameramanPosition.z, targetPosition.z],
     })
 }
+
+function inspect(name, target){
+    addDynFolder(name, null, null, function(folder){
+        addObjectToGUI(folder, target)
+    })
+}
+
+
+export default {
+  load,
+  inspect
+};
