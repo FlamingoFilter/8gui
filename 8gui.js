@@ -483,7 +483,7 @@ function moveTo(node){
 }
 
 function inspect(name, target){
-    addDynFolder(name, null, null, function(folder){
+    addDynFolder(name, null, target, function(folder){
         addObjectToGUI(folder, target)
     })
 }
