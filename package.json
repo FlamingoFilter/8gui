@@ -1,0 +1,22 @@
+{
+  "name": "8gui",
+  "version": "1.0.0",
+  "description": "Utility tool for modifying any Threejs scenes variables during runtime.",
+  "main": "sgui.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "threejs",
+    "dat.gui",
+    "gui",
+    "scene",
+    "js",
+    "debug"
+  ],
+  "author": "Flamingo Filter - Jonathann Jacobs <jonathann@flamingofilter.co>",
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "dat.gui": "^0.7.9"
+  }
+}
