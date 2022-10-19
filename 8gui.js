@@ -1,6 +1,7 @@
 // Add a debug gui for exploring and modifying variables of a threejs scene.
 
 import { GUI } from 'dat.gui'
+import * as THREE from 'three';
 
 var scene
 var lastGui 

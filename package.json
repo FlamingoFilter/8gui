@@ -1,22 +1,30 @@
 {
   "name": "8gui",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Utility tool for modifying any Threejs scenes variables during runtime.",
   "main": "8gui.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FlamingoFilter/8gui"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
+    "three",
     "threejs",
     "dat.gui",
     "gui",
-    "scene",
     "js",
-    "debug"
+    "debug",
+    "a-frame",
+    "aframe",
+    "8thwall"
   ],
   "author": "Flamingo Filter - Jonathann Jacobs <jonathann@flamingofilter.co>",
   "license": "Apache 2.0",
   "devDependencies": {
-    "dat.gui": "^0.7.9"
+    "dat.gui": "^0.7.9",
+    "three": "^0.100.0"
   }
 }
