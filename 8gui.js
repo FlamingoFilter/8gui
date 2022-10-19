@@ -3,29 +3,19 @@
 import { GUI } from 'dat.gui'
 import * as THREE from 'three';
 
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+var transformControl;
+
 var scene
-var lastGui 
-function load(sceneElem){
-    if(!sceneElem || !sceneElem.object3D || !sceneElem.camera){
-        console.error("load() argument expects a THREE.Scene to run on (with object3D and camera variables).")
-        return;
-    }
-    scene = sceneElem
-    try {
-        lastGui = new GUI()
-        addSceneFolderToGUI(lastGui)
-        return lastGui
-    } catch(e){
-        console.error(e)
-    }
-}
+var lastNodeMovedAt
+var lastGui
 
 var onGUIKey = {}
 var guiByUUID = {}
 var folders = {}
 
-function addSceneFolderToGUI(gui){
-    addDynFolder("8GUI", gui, scene, function(types){
+function addSceneFolderToGUI(name, gui){
+    addDynFolder(name, gui, scene, function(types){
         Object.keys(folders).forEach(folder => {
             folders[folder].unnamedNodesCount = 0;
         })
@@ -78,6 +68,7 @@ onGUIKey["position"]                 = function(nodeGui, node){
         folder.add({ moveTo:function(){
             moveTo(node)
         }},'moveTo');
+        controlNode(node, 'translate')
     })
     setFolderFontSize(folder)
 }
@@ -87,6 +78,7 @@ onGUIKey["rotation"]                 = function(nodeGui, node){
         folder.add(node.rotation, "x", 0, Math.PI * 2).step(0.01)
         folder.add(node.rotation, "y", 0, Math.PI * 2).step(0.01)
         folder.add(node.rotation, "z", 0, Math.PI * 2).step(0.01)
+        controlNode(node, 'rotate')
     })
     setFolderFontSize(folder)
 }
@@ -96,6 +88,7 @@ onGUIKey["scale"]                    = function(nodeGui, node){
         folder.add(node.scale, "x").step(0.01)
         folder.add(node.scale, "y").step(0.01)
         folder.add(node.scale, "z").step(0.01)
+        controlNode(node, 'scale')
     })
     setFolderFontSize(folder)
 }
@@ -324,6 +317,7 @@ function addObjectToGUI(objectGui, object){
         if(!object.hasOwnProperty(key)) continue
 
         if(onGUIKey[key]) {
+            if(!scene) tryToFindTheScene(object)
             try {
                 onGUIKey[key](objectGui, object)
                 continue
@@ -429,14 +423,16 @@ function setFolderFontSize(folder, size){
 }
 
 
-var boxHelper
+var meshHelper
 var arrowHelper
 function locate(node){
-    if(boxHelper){
-        scene.object3D.remove(boxHelper)
+    if(meshHelper){
+        scene.object3D.remove(meshHelper)
     }
-    boxHelper = new THREE.BoxHelper( node, 0xffff00 );
-    scene.object3D.add(boxHelper)
+    try {
+        meshHelper = new THREE.BoxHelper( node, 0xffff00 );
+        scene.object3D.add(meshHelper)
+    } catch(e){}
 
     if(arrowHelper){
         scene.object3D.remove(arrowHelper)
@@ -463,7 +459,6 @@ function moveTo(node){
         var center = node.geometry.boundingSphere.center
         targetWorldBoundingSphereRadius = ((node.geometry.boundingSphere.radius + Math.sqrt(center.x * center.x + center.y * center.y + center.z * center.z)) * xScale) * 2.0
     } catch(e) {
-        console.error(e)
         targetWorldBoundingSphereRadius = 1.0
     }
 
@@ -481,16 +476,121 @@ function moveTo(node){
         y: [cameramanPosition.y, targetPosition.y],
         z: [cameramanPosition.z, targetPosition.z],
     })
+
+    lastNodeMovedAt = node
 }
 
-function inspect(name, target){
-    addDynFolder(name, null, target, function(folder){
-        addObjectToGUI(folder, target)
-    })
+
+
+function moveToParent(){
+    if(lastNodeMovedAt && lastNodeMovedAt.parent){
+        locate(lastNodeMovedAt.parent)
+        moveTo(lastNodeMovedAt.parent)
+    }
+    else if(lastNodeMovedAt){
+        locate(lastNodeMovedAt)
+        moveTo(lastNodeMovedAt)
+    }
 }
 
+function moveToFirstChild(){
+    if(lastNodeMovedAt && lastNodeMovedAt.children && lastNodeMovedAt.children[0]){
+        locate(lastNodeMovedAt.children[0])
+        moveTo(lastNodeMovedAt.children[0])
+    }
+    else console.log("No child")
+}
+
+function moveToPreviousBrother(){
+    if(lastNodeMovedAt && lastNodeMovedAt.parent){
+        var children = lastNodeMovedAt.parent.children
+        var currentIndex = children.indexOf(lastNodeMovedAt)
+        var brother = children[currentIndex - 1]
+        if(brother){
+            locate(brother)
+            moveTo(brother)
+        }
+        else console.log("No previous brother")
+    }
+}
+
+function moveToNextBrother(){
+    if(lastNodeMovedAt && lastNodeMovedAt.parent){
+        var children = lastNodeMovedAt.parent.children
+        var currentIndex = children.indexOf(lastNodeMovedAt)
+        var brother = children[currentIndex + 1]
+        if(brother){
+            locate(brother)
+            moveTo(brother)
+        }
+        else console.log("No next brother")
+    }
+}
+
+window.addEventListener('keydown', function(e) {
+    if(e.getModifierState("Shift")){
+        if(!lastNodeMovedAt) return
+        switch (e.which) {
+        case 73: // I
+            moveToParent()
+            break;
+
+        case 74: // J
+            moveToPreviousBrother()
+            break;
+
+        case 75: // K
+            moveToFirstChild()
+            break;
+
+        case 76: // L
+            moveToNextBrother()
+            break;
+        }
+    }
+});
+
+function controlNode(node, mode){
+    if(!transformControl){
+        transformControl = new TransformControls( scene.camera, scene.renderer.domElement );
+        scene.object3D.add(transformControl)
+    }
+    if(node != transformControl && node != transformControl.parent){
+        transformControl.attach( node );
+        transformControl.setMode( mode );
+    }
+}
+
+function tryToFindTheScene(object){
+    if(object.el && object.el.sceneEl) scene = object.el.sceneEl
+}
+
+var sceneCount = 0
+var objectCount = 0
+function inspect(target, name){
+    if(target === undefined || target === null){
+        console.error("Target to inspect is " + target + ".")
+        return;
+    }
+    if(!lastGui) lastGui = new GUI()
+    try {
+        if(target && target.isScene){
+            scene = target
+            if(!name) name = "8GUI Scene " + (++sceneCount)
+            addSceneFolderToGUI(name, lastGui)
+        }
+        else {
+            if(!name) name = "8GUI Object " + (++objectCount)
+            addDynFolder(name, lastGui, target, function(folder){
+                addObjectToGUI(folder, target)
+            })
+        }
+    } catch(e) {
+        console.error(e)
+    }
+    return lastGui
+}
 
 export default {
-  load,
   inspect
 };
