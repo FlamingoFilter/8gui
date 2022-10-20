@@ -1,3 +1,4 @@
+# 8gui
 Utility tool for modifying Threejs scenes variables during runtime.
 
 Simple npm module with only one function : inspect(), taking up to two arguments.
