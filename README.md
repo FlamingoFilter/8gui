@@ -1,3 +1,9 @@
+Utility tool for modifying Threejs scenes variables during runtime.
+
+Simple npm module with only one function : inspect(), taking up to two arguments.
+First argument is mandatory : the variable to setup a GUI for.
+Second argument is optionnal : the GUI button name.
+
 ## Installation
 
 The easiest way to install 8gui is from [`npm`](https://www.npmjs.com/):
