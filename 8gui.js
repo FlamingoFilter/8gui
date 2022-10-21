@@ -71,6 +71,7 @@ onGUIKey["position"]                 = function(nodeGui, node){
         controlNode(node, 'translate')
     })
     setFolderFontSize(folder)
+    lastNodeMovedAt = node
 }
 
 onGUIKey["rotation"]                 = function(nodeGui, node){
@@ -477,6 +478,8 @@ function moveTo(node){
         z: [cameramanPosition.z, targetPosition.z],
     })
 
+    graphSceneSelect(node)
+
     lastNodeMovedAt = node
 }
 
@@ -488,8 +491,8 @@ function moveToParent(){
         moveTo(lastNodeMovedAt.parent)
     }
     else if(lastNodeMovedAt){
-        locate(lastNodeMovedAt)
-        moveTo(lastNodeMovedAt)
+        locate(scene.object3D)
+        moveTo(scene.object3D)
     }
 }
 
@@ -532,18 +535,22 @@ window.addEventListener('keydown', function(e) {
         if(!lastNodeMovedAt) return
         switch (e.which) {
         case 73: // I
+            console.log("Move To Parent")
             moveToParent()
             break;
 
         case 74: // J
+            console.log("Move To Previous Brother")
             moveToPreviousBrother()
             break;
 
         case 75: // K
+            console.log("Move To First Child")
             moveToFirstChild()
             break;
 
         case 76: // L
+            console.log("Move To Next Brother")
             moveToNextBrother()
             break;
         }
@@ -564,6 +571,145 @@ function controlNode(node, mode){
 function tryToFindTheScene(object){
     if(object.el && object.el.sceneEl) scene = object.el.sceneEl
 }
+
+
+//---------------------------------------------------------
+// https://stackoverflow.com/questions/15505225/inject-css-stylesheet-as-string-using-javascript
+/**
+ * Utility function to add CSS in multiple passes.
+ * @param {string} styleString
+ */
+function addStyle(styleString) {
+  const style = document.createElement('style');
+  style.textContent = styleString;
+  document.head.append(style);
+}
+
+// Solve potential z-index issue on 8thwall experiences
+addStyle(`
+  .dg.ac {
+    z-index: 9001 !important;
+  }
+`);
+//---------------------------------------------------------
+
+
+
+
+
+
+var sceneGraph
+var sceneGraphGeo
+var sceneGraphMat
+var parentLine
+var localLine
+var childrenLine
+function graphSceneSelect(node){
+    if(!node){
+        console.error("NO NODE ??")
+        return;
+    }
+    console.log(node)
+    var parent = node.parent
+    var family = [node]
+    var index = 0
+    if(parent){
+        console.log("Node has a parent")
+        family = node.parent.children
+        console.log("Family size is " + family.length)
+        index = family.indexOf(node)
+        console.log("Index is " + index)
+    }
+
+    if(!sceneGraph){
+        sceneGraph = new THREE.Object3D()
+        sceneGraph.position.z = -0.05
+        sceneGraph.position.y = -0.025
+        sceneGraph.scale.x = 0.01
+        sceneGraph.scale.y = 0.01
+        sceneGraph.scale.z = 0.01
+
+        parentLine   = new THREE.Object3D()
+        localLine    = new THREE.Object3D()
+        childrenLine = new THREE.Object3D()
+
+        parentLine.position.y = 0.5
+        childrenLine.position.y = -0.5
+
+        sceneGraph.add(parentLine)
+        sceneGraph.add(localLine)
+        sceneGraph.add(childrenLine)
+
+        scene.camera.parent.add(sceneGraph)
+    }
+
+
+    if(!sceneGraphGeo) sceneGraphGeo = new THREE.PlaneGeometry(0.2, 0.4)
+    if(!sceneGraphMat){
+        sceneGraphMat = new THREE.MeshStandardMaterial()
+        sceneGraphMat.color.r = 82 / 255
+        sceneGraphMat.color.g = 255 / 255
+        sceneGraphMat.color.b = 66 / 255
+    }
+
+    if(parent){
+        parentLine.visible = true
+        if(!parentLine.children[0]){
+            parentLine.add(new THREE.Mesh(sceneGraphGeo, sceneGraphMat))
+        }
+    }
+    else {
+        parentLine.visible = false
+    }
+
+    var brothersCountMissing = family.length - localLine.children.length
+    while(brothersCountMissing > 0){
+        var bro = new THREE.Object3D()
+        bro.add(new THREE.Mesh(sceneGraphGeo, sceneGraphMat))
+        localLine.add(bro)
+        bro.position.x = 0.3 * localLine.children.indexOf(bro)
+        brothersCountMissing--
+    }
+    console.log("Family length is " + family.length)
+    for(var i = 0; i < localLine.children.length; i++){
+        
+        if(i < family.length){
+            //console.log("Showing " + i + " / " + localLine.children.length)
+            localLine.children[i].visible = true
+        }
+        else {
+            //console.log("Hiding " + i + " / " + localLine.children.length)
+            localLine.children[i].visible = false
+        }
+    }
+
+    const startX = localLine.position.x
+    AFRAME.ANIME({
+        targets: localLine.position,
+        easing: 'easeInQuad', duration: 250, loop: false,
+        x: [startX, -0.3 * index],
+    })
+    //localLine.position.x = -0.3 * index
+
+    var childrenCountMissing = node.children.length - childrenLine.children.length
+    while(childrenCountMissing > 0){
+        var child = new THREE.Object3D()
+        child.add(new THREE.Mesh(sceneGraphGeo, sceneGraphMat))
+        childrenLine.add(child)
+        child.position.x = 0.3 * childrenLine.children.indexOf(child)
+        childrenCountMissing--
+    }
+    for(var i = 0; i < childrenLine.children.length; i++){
+        if(i < node.children.length) childrenLine.children[i].visible = true
+        else childrenLine.children[i].visible = false
+    }
+    
+}
+
+
+
+
+
 
 var sceneCount = 0
 var objectCount = 0
