@@ -20,7 +20,7 @@ var folders = {}
 
 // Several Object3D and Materials variables are used rarely, so it's probably better to hide them by default unless shift is pressed
 var keysToHideWhenNotPressingShift = [
-    "uuid", "name", "up", "quaternion", "matrix", "matrixAutoUpdate", "matrixWorld", "matrixWorldNeedsUpdate", "layers", "renderOrder", "castShadow", "receiveShadow", "frustumCulled",
+    "uuid", "name", "up", "quaternion", "matrix", "matrixAutoUpdate", "matrixWorld", "matrixWorldNeedsUpdate", "layers", "castShadow", "receiveShadow", "frustumCulled",
     "stencilFail", "stencilFunc", "stencilFuncMask", "stencilRef", "stencilWrite", "stencilWriteMask", "stencilZFail", "stencilZPass",
     "polygonOffset", "polygonOffsetFactor", "polygonOffsetUnits", "defines", "_listeners",
     "version", "wireframeLinecap", "wireframeLinejoin", "wireframeLinewidth"
@@ -234,13 +234,184 @@ onGUIKey["depthFunc"]                    = function(nodeGui, node){
     ctrl.__select[values.indexOf(ctrl.initialValue)].selected = true
 }
 
+onGUIKey["encoding"]                    = function(nodeGui, node){
+    var guiValues = [
+        "Linear",
+        "sRGB"
+    ]
+
+    var values =    [
+        THREE.LinearEncoding,
+        THREE.sRGBEncoding
+    ]
+
+    var ctrl = nodeGui.add(node, "encoding", guiValues).onChange(function(val){
+        node.encoding = values[guiValues.indexOf(val)]
+        node.needsUpdate = true
+    })
+    ctrl.__select[values.indexOf(ctrl.initialValue)].selected = true
+}
+
+onGUIKey["anisotropy"]                  = function(nodeGui, node){
+    nodeGui.add(node, "anisotropy", 1, 16).onChange(function(val){
+        node.anisotropy = val
+        node.needsUpdate = true
+    }).step(1)
+}
+
+onGUIKey["wrapS"]                    = function(nodeGui, node){
+    var guiValues = [
+        "Repeat",
+        "ClampToEdge",
+        "MirroredRepeat"
+    ]
+
+    var values =    [
+        THREE.RepeatWrapping,
+        THREE.ClampToEdgeWrapping,
+        THREE.MirroredRepeatWrapping
+    ]
+
+    var ctrl = nodeGui.add(node, "wrapS", guiValues).onChange(function(val){
+        node.wrapS = values[guiValues.indexOf(val)]
+        node.needsUpdate = true
+    })
+    ctrl.__select[values.indexOf(ctrl.initialValue)].selected = true
+}
+
+onGUIKey["wrapT"]                    = function(nodeGui, node){
+    var guiValues = [
+        "Repeat",
+        "ClampToEdge",
+        "MirroredRepeat"
+    ]
+
+    var values =    [
+        THREE.RepeatWrapping,
+        THREE.ClampToEdgeWrapping,
+        THREE.MirroredRepeatWrapping
+    ]
+
+    var ctrl = nodeGui.add(node, "wrapT", guiValues).onChange(function(val){
+        node.wrapT = values[guiValues.indexOf(val)]
+        node.needsUpdate = true
+    })
+    ctrl.__select[values.indexOf(ctrl.initialValue)].selected = true
+}
+
+onGUIKey["magFilter"]                    = function(nodeGui, node){
+    var guiValues = [
+        "Nearest",
+        "Linear"
+    ]
+
+    var values =    [
+        THREE.NearestFilter,
+        THREE.LinearFilter
+    ]
+
+    var ctrl = nodeGui.add(node, "magFilter", guiValues).onChange(function(val){
+        node.magFilter = values[guiValues.indexOf(val)]
+        node.needsUpdate = true
+    })
+    ctrl.__select[values.indexOf(ctrl.initialValue)].selected = true
+}
+
+onGUIKey["minFilter"]                    = function(nodeGui, node){
+    var guiValues = [
+        "Nearest",
+        "NearestMipmapNearest",
+        "NearestMipmapLinear",
+        "Linear",
+        "LinearMipmapNearest",
+        "LinearMipmapLinear"
+    ]
+
+    var values =    [
+        THREE.NearestFilter,
+        THREE.NearestMipmapNearestFilter,
+        THREE.NearestMipmapLinearFilter,
+        THREE.LinearFilter,
+        THREE.LinearMipmapNearestFilter,
+        THREE.LinearMipmapLinearFilter
+    ]
+
+    var ctrl = nodeGui.add(node, "minFilter", guiValues).onChange(function(val){
+        node.minFilter = values[guiValues.indexOf(val)]
+        node.needsUpdate = true
+    })
+    ctrl.__select[values.indexOf(ctrl.initialValue)].selected = true
+}
+
+onGUIKey["format"]                    = function(nodeGui, node){
+    var guiValues = [
+        "Alpha",
+        "Red",
+        "RedInteger",
+        "RG",
+        "RGInteger",
+        "RGBA",
+        "RGBAInteger",
+        "Luminance",
+        "LuminanceAlpha",
+        "Depth",
+        "DepthStencil"
+    ]
+
+    var values =    [
+        THREE.AlphaFormat,
+        THREE.RedFormat,
+        THREE.RedIntegerFormat,
+        THREE.RGFormat,
+        THREE.RGIntegerFormat,
+        THREE.RGBAFormat,
+        THREE.RGBAIntegerFormat,
+        THREE.LuminanceFormat,
+        THREE.LuminanceAlphaFormat,
+        THREE.DepthFormat,
+        THREE.DepthStencilFormat
+    ]
+
+    var ctrl = nodeGui.add(node, "format", guiValues).onChange(function(val){
+        node.format = values[guiValues.indexOf(val)]
+        node.needsUpdate = true
+    })
+    ctrl.__select[values.indexOf(ctrl.initialValue)].selected = true
+}
+
+onGUIKey["mapping"]                    = function(nodeGui, node){
+    var guiValues = [
+        "UV",
+        "CubeReflection",
+        "CubeRefraction",
+        "EquirectangularReflection",
+        "EquirectangularRefraction",
+        "CubeUVReflection"
+    ]
+
+    var values =    [
+        THREE.UVMapping,
+        THREE.CubeReflectionMapping,
+        THREE.CubeRefractionMapping,
+        THREE.EquirectangularReflectionMapping,
+        THREE.EquirectangularRefractionMapping,
+        THREE.CubeUVReflectionMapping
+    ]
+
+    var ctrl = nodeGui.add(node, "mapping", guiValues).onChange(function(val){
+        node.mapping = values[guiValues.indexOf(val)]
+        node.needsUpdate = true
+    })
+    ctrl.__select[values.indexOf(ctrl.initialValue)].selected = true
+}
+
 onGUIKey["filmGauge"]             = function(nodeGui, node){} // Unknown uses
 onGUIKey["filmOffset"]            = function(nodeGui, node){} // Unknown uses
 onGUIKey["type"]                  = function(nodeGui, node){}
-onGUIKey["fog"]                   = function(nodeGui, node){} // Fog isn't in the official doc...
+//onGUIKey["fog"]                   = function(nodeGui, node){} // Fog is an a-frame boolean for toggling the fog effect on it.
 onGUIKey["vertexColors"]          = function(nodeGui, node){
     node.vertexColors = node.vertexColors ? true : false;
-    objectGui.add(object, "vertexColors")
+    nodeGui.add(node, "vertexColors")
 }
 
 onGUIKey["fov"]                  = function(nodeGui, node){

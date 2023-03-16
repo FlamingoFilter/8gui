@@ -1,40 +1,6 @@
 # 8gui
-Utility tool for modifying Threejs scenes variables during runtime.
 
-Simple npm module with only one function : inspect(), taking up to two arguments.
-First argument is mandatory : the variable to setup a GUI for.
-Second argument is optionnal : the GUI button name.
-
-## Installation
-
-The easiest way to install 8gui is from [`npm`](https://www.npmjs.com/):
-
-```sh
-npm i 8gui
-```
-
-You can also copy dist/8gui-standalone.js in your project and require() it like shown below.
-
-## Quickstart
-
-```js
-import GUI from '8gui'
-
-// Pure JS use
-var someJSObjectToInspect = {aString : "aStringValue", aFloat : "2.8"}
-GUI.inspect(someJSObjectToInspect, "my Var GUI Editor")
-
-// Enhanced THREE.Scene use
-GUI.inspect(document.getElementById("scene")) // Presume a <a-scene id="scene"> in the dom
-
-```
-
-
-## To 8thWall Teams
-
-Hello ! I'm Jonathann from Flamingo Filter and i came here to give everyone some feedback, along with a surprise.
-We did realize and sell a few 8thwall project, three things slowed our project development on 8thwall :
-
+When creating few 8thwall projects, three things slowed our project development on 8thwall :
 1/ Setting up scenegraph nodes positions/rotations/scales is a lot of guessing the good values, reloading app and visually confirming it's fine.
 2/ Setting up threejs materials can be complicated and time consuming for doing nice effects.
 3/ Sometimes we load up new assets and are searching them for hours. It could be because of :
